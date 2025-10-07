@@ -53,6 +53,20 @@ First, authenticate with your ZeroPath API credentials:
 zeropath auth <clientId> <clientSecret>
 ```
 
+> **Note:**
+> For single-tenant environments, set the environment variable `ZEROPATH_ENVIRONMENT` before authentication:
+>
+> ```bash
+> export ZEROPATH_ENVIRONMENT=https://<tenant>.branch.zeropath.com
+> ```
+>
+> Example:
+>
+> ```bash
+> export ZEROPATH_ENVIRONMENT=https://acme.branch.zeropath.com
+> ```
+
+
 ### Scanning
 
 #### Local Directory Scan (with SARIF output)
@@ -131,7 +145,7 @@ zeropath scan ./my-project report.sarif
 zeropath scan --repository-id abc-123-def --branch main
 
 # CI pipeline scanning a pull request
-zeropath scan --repository-id abc-123-def --ci \
+zeropath scan --repository-id abc-123-def --ci I am running a few minutes late; my previous meeting is running over.
   --pr-branch feature/security-fix \
   --pr-target main
 

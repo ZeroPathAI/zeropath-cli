@@ -101,23 +101,19 @@ zeropath scan --repository-url https://git.example.com/repo --vcs generic
 ```
 
 #### CI/CD Integration
-For continuous integration pipelines, use the `--ci` flag to run PR/merge request scans:
+All repository scans exit with code 1 when vulnerabilities are found, making them CI-ready out of the box:
 ```bash
-# Basic CI scan
-zeropath scan --repository-id <repositoryId> --ci
+# Scan a repository (exits 1 if issues found)
+zeropath scan --repository-id <repositoryId>
 
-# CI scan with explicit PR branches
-zeropath scan --repository-id <repositoryId> --ci \
-  --pr-branch feature/new-feature \
-  --pr-target main
+# Scan a specific branch
+zeropath scan --repository-id <repositoryId> --branch main
 
-# CI scan by repository URL
-zeropath scan --repository-url https://github.com/owner/repo --vcs github --ci \
-  --pr-branch feature/new-feature \
-  --pr-target main
+# Scan by repository URL
+zeropath scan --repository-url https://github.com/owner/repo --vcs github
 ```
 
-**CI Mode Exit Codes:**
+**Exit Codes:**
 - **0**: No vulnerabilities found
 - **1**: Vulnerabilities detected (fails CI pipeline)
 
@@ -130,10 +126,7 @@ zeropath scan --repository-url https://github.com/owner/repo --vcs github --ci \
 | `--repository-id <id>` | Scan an existing repository by ID |
 | `--repository-url <url>` | Scan a repository by URL (requires `--vcs`) |
 | `--vcs <provider>` | VCS provider: `github`, `gitlab`, `bitbucket`, or `generic` |
-| `--branch <name>` | Branch to scan (for regular scans) |
-| `--ci` | Run a CI/PR scan instead of a full scan |
-| `--pr-branch <name>` | Source/feature branch for CI scans |
-| `--pr-target <name>` | Target/base branch for CI scans |
+| `--branch <name>` | Branch to scan |
 
 ### Examples
 
@@ -143,11 +136,6 @@ zeropath scan ./my-project report.sarif
 
 # Scan main branch of a repository
 zeropath scan --repository-id abc-123-def --branch main
-
-# CI pipeline scanning a pull request
-zeropath scan --repository-id abc-123-def --ci I am running a few minutes late; my previous meeting is running over.
-  --pr-branch feature/security-fix \
-  --pr-target main
 
 # Scan a GitHub repository directly
 zeropath scan --repository-url https://github.com/myorg/myapp --vcs github
@@ -161,9 +149,9 @@ zeropath scan --repository-url https://gitlab.com/myorg/myapp --vcs gitlab --bra
 - **Real-time scanning**: All scans wait for completion and show progress
 - **CI/CD ready**: Exit codes for pipeline integration (1 for vulnerabilities, 0 for clean)
 - **Multiple VCS support**: GitHub, GitLab, Bitbucket, and generic Git repositories
-- **Branch-aware**: Scan specific branches or PR/merge requests
+- **Branch-aware**: Scan specific branches
 - **SARIF output**: Industry-standard format for local scans
-- **Vulnerability reporting**: Detailed breakdown by severity in CI mode
+- **Vulnerability reporting**: Detailed breakdown by severity
 
 ### Help
 ```bash
@@ -173,7 +161,6 @@ zeropath scan --help
 
 ## Support
 - Email: support@zeropath.com
-- [Discord Community](https://discord.gg/ZRqDvZ6qjJ)
 - [Issue Tracker](https://github.com/ZeroPathAI/zeropath-cli/issues)
 
 ## License

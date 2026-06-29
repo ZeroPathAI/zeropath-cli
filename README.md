@@ -14,6 +14,7 @@ ZeroPath CLI provides command-line access to ZeroPath's AI-powered security scan
 - Command injection vulnerabilities
 - File inclusion and path traversal attacks
 - Secrets / hardcoded credentials
+- Vulnerable OS packages and base images in container images
 - **And more**
 
 ## Installation
@@ -149,6 +150,36 @@ context.
 You must choose exactly one input source per invocation: `--diff`, `--staged`,
 `--file`, `--files`, `--snippet`, or `--stdin`.
 
+#### Container Image Scanning
+Scan container images for vulnerable OS packages and dependencies, with
+base-image upgrade recommendations. Point the CLI at a registry reference, or
+upload a local tarball for air-gapped images that cannot be pulled.
+
+```bash
+# Scan an image from a registry and wait for the result
+zeropath container test ghcr.io/acme/api:1.4
+
+# Scan a private image (supply registry credentials)
+zeropath container test ghcr.io/acme/api:1.4 \
+  --registry-username <user> --registry-token <token>
+
+# Scan a local image tarball (air-gapped): docker save -o api.tar ghcr.io/acme/api:1.4
+zeropath container test --file api.tar --name acme-api
+
+# Submit and enable a recurring re-scan schedule (defaults to daily at 03:00 UTC)
+zeropath container monitor ghcr.io/acme/api:1.4 --schedule "0 3 * * *"
+
+# Link a tracked image to a repository (or move it between repositories)
+zeropath container link <containerImageId> --repository-id <repositoryId>
+```
+
+By default the CLI auto-links the scanned image to the ZeroPath repository
+matching your current checkout's Git remote; pass `--repository-id` to choose one
+explicitly, or `--no-auto-repository` to disable. Like `scan`, `container test`
+exits with code 1 when vulnerabilities are found, so it drops into CI pipelines
+unchanged. Tarball uploads (`--file`) are one-shot — `monitor` requires a
+registry reference that can be re-pulled on a schedule.
+
 #### CI/CD Integration
 Repository scans and on-demand code scans exit with code 1 when vulnerabilities
 are found, making them CI-ready out of the box:
@@ -165,6 +196,9 @@ zeropath scan --repository-url https://github.com/owner/repo --vcs github
 
 # Scan only the current Git diff and print JSON output
 zeropath scan-code --diff --json
+
+# Scan a container image (exits 1 if vulnerabilities found)
+zeropath container test ghcr.io/owner/image:tag
 ```
 
 **Exit Codes:**
@@ -206,6 +240,25 @@ zeropath scan-code --diff --json
 | `--no-wait` | Submit the scan without waiting for results |
 | `--timeout <seconds>` | Maximum seconds to wait for completion (default: 600) |
 
+#### `zeropath container` Options
+
+| Option | Description |
+|--------|-------------|
+| `test [image]` | Scan a registry image (or `--file` tarball), polling until done |
+| `monitor <image>` | Scan an image and enable a recurring re-scan schedule |
+| `link <containerImageId>` | Link or move a tracked image to a repository |
+| `--file <path>` | Scan a local image tarball (`docker save`) for air-gapped images (`test` only) |
+| `--name <label>` | Display label for an uploaded `--file` image |
+| `--schedule <cron>` | Cron schedule for `monitor` re-scans (default: `0 3 * * *`) |
+| `--registry-username <user>` | Username for pulling a private image |
+| `--registry-token <token>` | Token/password for pulling a private image |
+| `--repository-id <id>` | Repository to attach or link the image to |
+| `--no-auto-repository` | Disable auto-linking from the current Git remote (on by default) |
+| `--organization-id <id>` | Organization that owns the image |
+| `--json` | Print the response payload as JSON |
+| `--no-wait` | (`test`) Submit without polling for completion |
+| `--timeout <seconds>` | (`test`) Maximum seconds to wait (default: 1800) |
+
 ### Examples
 
 ```bash
@@ -232,6 +285,7 @@ zeropath scan-code --diff
 - **Multiple VCS support**: GitHub, GitLab, Bitbucket, and generic Git repositories
 - **Branch-aware**: Scan specific branches
 - **On-demand code scans**: Submit diffs, files, file sets, or snippets without starting a full repository scan
+- **Container scanning**: Scan images from registries or local tarballs, with optional recurring monitoring
 - **SARIF output**: Industry-standard format for local scans
 - **Vulnerability reporting**: Detailed breakdown by severity
 
@@ -239,6 +293,8 @@ zeropath scan-code --diff
 ```bash
 zeropath --help
 zeropath scan --help
+zeropath container --help
+zeropath --version
 ```
 
 ## Support
